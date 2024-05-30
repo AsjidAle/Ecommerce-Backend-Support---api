@@ -1,0 +1,120 @@
+<?php
+
+namespace {{ namespace }};
+
+use {{ namespacedModel }};
+use {{ rootNamespace }}Http\Controllers\BaseController;
+use {{ namespacedRequests }};
+use Illuminate\Support\Facades\Validator;
+
+class {{ class }} extends BaseController
+{
+    /**
+     * Display a listing of the resource.
+     */
+    public function index($size = null)
+    {
+        $user = auth()->user();
+
+        if(!$user || !$user->hasPermissionTo(`View {{model}}`)){
+            return $this->sendError();
+        }
+
+        if(!$size || $size > 100){
+            $size = 100;
+        }
+        $data = {{model}}::paginate($size);
+        return $this->sendResponse($data);
+    }
+
+    /**
+     * Store a newly created resource in storage.
+     */
+    public function store({{ storeRequest }} $request)
+    {
+        $user = auth()->user();
+
+        if(!$user || !$user->hasPermissionTo(`Insert {{model}}`)){
+            return $this->sendError();
+        }
+
+        $validator = Validator::make($request->all(),[
+            //
+        ]);
+
+        if($validator->fails()){
+            return $this->sendError('Validation Error',$validator->errors(),422);
+        }
+        {{model}}->create($validator->validated());
+
+        return $this->sendResponse('Record Inserted Successfully');
+    }
+
+    /**
+     * Display the specified resource.
+     */
+    public function show($id)
+    {
+        $user = auth()->user();
+
+        if(!$user || !$user->hasPermissionTo(`View {{model}}`)){
+            return $this->sendError();
+        }
+        ${{model}} = {{model}}::find($id);
+
+        if(!${{model}}){
+            return $this->sendError('Record Not Found',404);
+        }
+
+        return $this->sendResponse(${{model}});
+    }
+
+    /**
+     * Update the specified resource in storage.
+     */
+    public function update({{ updateRequest }} $request, $id)
+    {
+        $user = auth()->user();
+
+        if(!$user || !$user->hasPermissionTo(`Update {{namespacedModel}}`)){
+            return $this->sendError();
+        }
+        ${{model}} = {{model}}::find($id);
+
+        if(!${{model}}){
+            return $this->sendError('Record Not Found',404);
+        }
+
+        $validator = Validator::make($request->all(),[
+            //
+        ]);
+
+        if($validator->fails()){
+            return $this->sendError('Validation Error',$validator->errors(),422);
+        }
+
+        ${{model}}->update($validator->validated());
+
+        return $this->sendResponse('Record Updated Successfully');
+    }
+
+    /**
+     * Remove the specified resource from storage.
+     */
+    public function destroy($id)
+    {
+        $user = auth()->user();
+
+        if(!$user || $user->hasPermissionTo(`Delete {{model}}`)){
+            return $this->sendError();
+        }
+        ${{model}}={{ model }}::find($id);
+
+        if(${{model}}){
+            return $this->sendError('Record not found',404);
+        }
+
+        return $this->sendError(${{model}});
+        
+    }
+}
